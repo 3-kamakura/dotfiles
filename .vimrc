@@ -26,6 +26,7 @@ NeoBundle 'Shougo/neocomplete'
 NeoBundle 'Shougo/neosnippet'
 NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'szw/vim-tags'
+NeoBundle 'honza/vim-snippets'
 
 " Rails関係
 NeoBundle 'romanvbabenko/rails.vim'
@@ -55,20 +56,21 @@ if !exists('g:neocomplcache_next_keyword_patterns')
   let g:neocomplcache_next_keyword_patterns = {}
 endif
 
-let g:neocomplete#keyword_patterns._ = '\h\w*'
-let g:neocomplete#sources#dictionary = $RSENSE_HOME
 " tabで補完候補の選択を行う
 inoremap <expr><TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<S-TAB>"
-" 改行で補完ウィンドウを閉じる
+" CRで補完ウィンドウを閉じる + 改行
 inoremap <expr><CR> neocomplete#smart_close_popup() . "\<CR>"
+" C-jで補完ウィンドウを閉じる(改行無し)
+inoremap <expr><C-j> neocomplete#smart_close_popup()
 "C-h, BSで補完ウィンドウを確実に閉じる
 inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
 inoremap <expr><BS> neocomplete#smart_close_popup()."\<BS>"
 
+" Enable snipMate compatibility feature.
+let g:neosnippet#enable_snipmate_compatibility = 1
 " スニペットファイルの場所指定
-let g:neosnippet#snippets_directory='~/.vim/snippets/'
-
+let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 " ファイル名で区別出来る場合は直接呼び出し
 " ファイル名で区別できない場合は一旦関数に投げる
 augroup filetypedetect
@@ -93,8 +95,13 @@ function! s:LoadRailsSnippet()
     NeoSnippetSource ~/.vim/snippets/ruby_snip/ruby.rails.view.snip
   endif
 endfunction
+" Plugin key-mappings.  " <C-k>でsnippetの展開
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
+smap <C-k> <Plug>(neosnippet_expand_or_jump)
 
 " 辞書登録
+let g:neocomplete#keyword_patterns._ = '\h\w*'
+let g:neocomplete#sources#dictionary = $RSENSE_HOME
 let $VIMHOME = $HOME . '/.vim'
 let g:neocomplete#sources#dictionary#dictionaries = {
   \ 'default' : '',
@@ -136,7 +143,7 @@ set nowrap            " 画面幅で折り返さない
 set cursorline        " カーソル行をハイライト
 
 set wildmenu          " コマンド補完を強化
-set laststatus=2 
+set laststatus=2      " ステータスを2行表示に
 
 "set list
 set listchars=tab:>\
@@ -147,6 +154,7 @@ set ignorecase        " 大文字小文字無視
 set smartcase         " 大文字ではじめたら大文字小文字無視しない
 set hlsearch          " 検索文字をハイライト
 
+
 " ---------- Tab ----------
 set expandtab         " Tabを半角スペースに置き換える
 set tabstop=2         " Tabを押した時の半角スペースの数
@@ -155,6 +163,11 @@ set softtabstop=2
 
 " Backspaceを調整
 set backspace=indent,eol,start
+
+" ---------- KeyMap ----------
+nnoremap <Esc><Esc> :<C-u>noh<Return>
+" カーソル後の文字削除
+inoremap <silent> <C-d> <Del>
 
 augroup auto_comment_off
   autocmd!
