@@ -19,6 +19,8 @@ NeoBundle 'chriskempson/vim-tomorrow-theme'
 
 " 一般
 NeoBundle 'nathanaelkane/vim-indent-guides'
+NeoBundle 'vim-scripts/AnsiEsc.vim'
+NeoBundle 'glidenote/rspec-result-syntax'
 
 " 開発全般
 NeoBundle 'scrooloose/nerdtree'
@@ -28,7 +30,17 @@ NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'szw/vim-tags'
 NeoBundle 'honza/vim-snippets'
 NeoBundle 'tpope/vim-endwise'
-NeoBundle "tyru/caw.vim.git"
+NeoBundle 'tyru/caw.vim.git'
+NeoBundle 'thinca/vim-quickrun'
+NeoBundle 'Shougo/vimproc', {
+  \ 'build' : {
+    \ 'windows' : 'make -f make_mingw32.mak',
+    \ 'cygwin' : 'make -f make_cygwin.mak',
+    \ 'mac' : 'make -f make_mac.mak',
+    \ 'unix' : 'make -f make_unix.mak',
+  \ },
+\ }
+NeoBundle 'tpope/vim-fugitive'
 
 " Rails関係
 NeoBundle 'romanvbabenko/rails.vim'
@@ -123,21 +135,64 @@ function! s:LoadRailsSnippet()
   endif
 endfunction
 
+"---------------------------
 " vim-indent-guides
+"---------------------------
 let g:indent_guides_auto_colors=0
 autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd   ctermbg=234
 autocmd VimEnter,Colorscheme * :hi IndentGuidesEven  ctermbg=238
 let g:indent_guides_enable_on_vim_startup=1
 let g:indent_guides_guide_size=2
 
+"---------------------------
 " vim-tags
+"---------------------------
 let g:vim_tags_project_tags_command = "ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
 "au BufNewFile,BufRead *.rb let g:vim_tags_project_tags_command = \"ctags --languages=ruby -f ~/tags/ruby.tags `pwd` 2>/dev/null &"
 
 nmap <C-K> <Plug>(caw:i:toggle)
 vmap <C-K> <Plug>(caw:i:toggle)
 
+"---------------------------
+" vim-quickrun
+"---------------------------
+" quickrunの出力結果にAnsiEscを実行して色付けする
+autocmd FileType quickrun AnsiEsc
+
+let g:quickrun_config = {'*': {'split': 'below 10sp'}}
+let g:quickrun_config._ = {'runner' : 'vimproc'}
+let g:quickrun_config['rspec/bundle'] = {
+  \ 'type': 'rspec/bundle',
+  \ 'command': 'rspec',
+  \ 'exec': 'bundle exec %c %o %s%a',
+  \ 'outputter/buffer/filetype': 'rspec-result',
+  \ 'filetype'                 : 'rspec-result'
+  \}
+let g:quickrun_config['rspec/normal'] = {
+  \ 'type': 'rspec/normal',
+  \ 'command': 'rspec',
+  \ 'exec': '%c %o --color --tty %s%a',
+  \ 'outputter/buffer/filetype': 'rspec-result',
+  \ 'filetype'                 : 'rspec-result'
+  \}
+
+function! RSpecQuickrun()
+  let b:quickrun_config = {'type' : 'rspec/bundle'}
+  nnoremap <expr><silent> <Space>lr "<Esc>:QuickRun -args :" . line(".") . "<CR>"
+endfunction
+
+autocmd BufReadPost *_spec.rb call RSpecQuickrun()
+
+"---------------------------
+" vim-fugitive
+"---------------------------
+nnoremap <silent> <Space>gb :Gblame<CR>
+nnoremap <silent> <Space>gd :Gdiff<CR>
+nnoremap <silent> <Space>gs :Gstatus<CR>
+
+"---------------------------
 " colorscheme
+"---------------------------
 syntax on
 colorscheme Tomorrow-Night-Bright
 
