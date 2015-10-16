@@ -1,10 +1,13 @@
+" Vimの設定ファイルとかのホームディレクトリ
+let $VIMHOME = $HOME . '/dotfiles/.vim'
+
 "---------------------------
-" Neobundle Settings
+" Neobundle
 "---------------------------
 " bundleで管理するディレクトリを指定
-set runtimepath+=~/.vim/bundle/neobundle.vim/
+set runtimepath+=~/dotfiles/.vim/bundle/neobundle.vim/
 
-call neobundle#begin(expand('~/.vim/bundle/'))
+call neobundle#begin(expand('~/dotfiles/.vim/bundle/'))
 
 " neobundle自体をneobundleで管理
 NeoBundleFetch 'Shougo/neobundle.vim'
@@ -13,24 +16,30 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 " 管理モジュール一覧
 "---------------------------
 " カラースキーマ
-NeoBundle 'w0ng/vim-hybrid'
-NeoBundle 'altercation/vim-colors-solarized'
 NeoBundle 'chriskempson/vim-tomorrow-theme'
+" NeoBundle 'w0ng/vim-hybrid'
+" NeoBundle 'altercation/vim-colors-solarized'
 
 " 一般
 NeoBundle 'nathanaelkane/vim-indent-guides'
-NeoBundle 'vim-scripts/AnsiEsc.vim'
-NeoBundle 'glidenote/rspec-result-syntax'
+NeoBundle 'scrooloose/nerdtree'
+NeoBundle 'grep.vim'
+NeoBundle 'itchyny/lightline.vim'
 
 " 開発全般
-NeoBundle 'scrooloose/nerdtree'
+NeoBundle 'tyru/caw.vim.git'
+
+" 入力補完
 NeoBundle 'Shougo/neocomplete'
 NeoBundle 'Shougo/neosnippet'
 NeoBundle 'Shougo/neosnippet-snippets'
-NeoBundle 'szw/vim-tags'
 NeoBundle 'honza/vim-snippets'
-NeoBundle 'tpope/vim-endwise'
-NeoBundle 'tyru/caw.vim.git'
+NeoBundle "kana/vim-smartinput"
+NeoBundle "cohama/vim-smartinput-endwise"
+" NeoBundle 'szw/vim-tags'
+NeoBundle 'soramugi/auto-ctags.vim'
+
+" コード実行
 NeoBundle 'thinca/vim-quickrun'
 NeoBundle 'Shougo/vimproc', {
   \ 'build' : {
@@ -40,15 +49,62 @@ NeoBundle 'Shougo/vimproc', {
     \ 'unix' : 'make -f make_unix.mak',
   \ },
 \ }
-NeoBundle 'tpope/vim-fugitive'
 
-" Rails関係
+" 構文解析
+NeoBundle 'scrooloose/syntastic'
+
+" JavaScript
+NeoBundle 'pangloss/vim-javascript'
+
+" Rails
 NeoBundle 'romanvbabenko/rails.vim'
+NeoBundle 'glidenote/rspec-result-syntax'
+
+" Git
+NeoBundle 'tpope/vim-fugitive'
+NeoBundle 'airblade/vim-gitgutter'
 
 call neobundle#end()
 
 "---------------------------
-" neocomplete用設定
+" カラースキーマ
+"---------------------------
+syntax on
+colorscheme Tomorrow-Night-Bright
+
+hi LineNr ctermfg=244
+
+hi Pmenu ctermbg=237
+hi PmenuSel ctermfg=33 ctermbg=220
+hi PMenuSbar ctermbg=4
+hi Visual cterm=reverse ctermfg=32 ctermbg=220
+hi Search cterm=reverse ctermfg=32 ctermbg=220
+hi IncSearch cterm=reverse ctermfg=160 ctermbg=220
+
+"---------------------------
+" vim-indent-guides
+"---------------------------
+let g:indent_guides_auto_colors=0
+autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd   ctermbg=234
+autocmd VimEnter,Colorscheme * :hi IndentGuidesEven  ctermbg=238
+let g:indent_guides_enable_on_vim_startup=1
+let g:indent_guides_guide_size=2
+
+"---------------------------
+" lightline.vim
+"---------------------------
+let g:lightline = {
+  \ 'colorscheme': 'wombat'
+\ }
+
+"---------------------------
+" caw.vim.git
+"---------------------------
+nmap <C-K> <Plug>(caw:i:toggle)
+vmap <C-K> <Plug>(caw:i:toggle)
+
+"---------------------------
+" neocomplete
 "---------------------------
 " 補完ウィンドウの設定
 set completeopt=menuone
@@ -92,18 +148,18 @@ inoremap <expr><BS> neocomplete#smart_close_popup()."\<BS>"
 " Enable snipMate compatibility feature.
 let g:neosnippet#enable_snipmate_compatibility = 1
 " スニペットファイルの場所指定
-let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
-" Plugin key-mappings.  " <C-k>でsnippetの展開
+let g:neosnippet#snippets_directory = $VIMHOME.'/bundle/vim-snippets/snippets, '.$VIMHOME.'/snippets'
+" <C-k>でsnippetの展開
 imap <C-k> <Plug>(neosnippet_expand_or_jump)
 smap <C-k> <Plug>(neosnippet_expand_or_jump)
 
 " 辞書登録
 let g:neocomplete#keyword_patterns._ = '\h\w*'
 let g:neocomplete#sources#dictionary = $RSENSE_HOME
-let $VIMHOME = $HOME . '/.vim'
 let g:neocomplete#sources#dictionary#dictionaries = {
   \ 'default' : '',
-  \ 'rb' : $VIMHOME.'/dict/ruby.dict'
+  \ 'rb' : $VIMHOME.'/dict/ruby.dict',
+  \ 'js' : $VIMHOME.'/dict/javascript.dict'
 \ }
 
 " ファイル名で区別出来る場合は直接呼び出し
@@ -116,19 +172,19 @@ augroup END
 function! s:LoadRailsSnippet()
   " カレントディレクトリのディレクトリパス（絶対パス）取得
   let s:current_file_path = expand("%:p:h")
-  " specフォルダ内ならば
+  " specフォルダ内
   if ( s:current_file_path =~ "spec/" )
     NeoSnippetSource ~/.vim/snippets/ruby_snip/ruby.rails.rspec.snip
   " appフォルダ内でなければ無視
   elseif ( s:current_file_path !~ "app/" )
     return
-  " app/modelsフォルダ内ならば
+  " app/modelsフォルダ内
   elseif ( s:current_file_path =~ "app/models" )
     NeoSnippetSource ~/.vim/snippets/ruby_snip/ruby.rails.model.snip
-  " app/controllersフォルダ内ならば
+  " app/controllersフォルダ内
   elseif ( s:current_file_path =~ "app/controllers" )
     NeoSnippetSource ~/.vim/snippets/ruby_snip/ruby.rails.controller.snip
-  " app/viewsフォルダ内ならば
+  " app/viewsフォルダ内
   elseif ( s:current_file_path =~ "app/views" )
     NeoSnippetSource ~/.vim/snippets/ruby_snip/ruby.rails.view.snip
     NeoSnippetSource ~/.vim/snippets/vim-snippets/html.snippets
@@ -136,28 +192,52 @@ function! s:LoadRailsSnippet()
 endfunction
 
 "---------------------------
-" vim-indent-guides
+" neocomplete + smartinput
 "---------------------------
-let g:indent_guides_auto_colors=0
-autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd   ctermbg=234
-autocmd VimEnter,Colorscheme * :hi IndentGuidesEven  ctermbg=238
-let g:indent_guides_enable_on_vim_startup=1
-let g:indent_guides_guide_size=2
+if neobundle#tap('vim-smartinput')
+  call neobundle#config({
+    \ 'autoload' : {
+    \   'insert' : 1
+    \ }
+  \ })
+
+  function! neobundle#tapped.hooks.on_post_source(bundle)
+    call smartinput_endwise#define_default_rules()
+  endfunction
+
+  call neobundle#untap()
+endif
+
+if neobundle#tap('vim-smartinput-endwise')
+  function! neobundle#tapped.hooks.on_post_source(bundle)
+    " neosnippet and neocomplete compatible
+    call smartinput#map_to_trigger('i', '<Plug>(vimrc_cr)', '<Enter>', '<Enter>')
+    imap <expr><CR> !pumvisible() ? "\<Plug>(vimrc_cr)" :
+      \ neosnippet#expandable() ? "\<Plug>(neosnippet_expand)" :
+      \ neocomplete#close_popup()
+  endfunction
+  call neobundle#untap()
+endif
 
 "---------------------------
 " vim-tags
 "---------------------------
-let g:vim_tags_project_tags_command = "ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
-"au BufNewFile,BufRead *.rb let g:vim_tags_project_tags_command = \"ctags --languages=ruby -f ~/tags/ruby.tags `pwd` 2>/dev/null &"
+" let g:vim_tags_project_tags_command = "ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
+" au BufNewFile,BufRead *.rb let g:vim_tags_project_tags_command = \"ctags --languages=ruby -f ~/tags/ruby.tags `pwd` 2>/dev/null &"
+" au BufNewFile,BufRead *.js let g:vim_tags_project_tags_command = \"ctags --languages=javascript -f ~/tags/javascript.tags `pwd` 2>/dev/null &"
 
-nmap <C-K> <Plug>(caw:i:toggle)
-vmap <C-K> <Plug>(caw:i:toggle)
+"---------------------------
+" auto-ctags.vim
+"---------------------------
+let g:auto_ctags = 1
+let g:auto_ctags_filetype_mode = 1
+let g:auto_ctags_directory_list = ['.git', '.svn']
 
 "---------------------------
 " vim-quickrun
 "---------------------------
-" quickrunの出力結果にAnsiEscを実行して色付けする
-autocmd FileType quickrun AnsiEsc
+" " quickrunの出力結果にAnsiEscを実行して色付けする
+" autocmd FileType quickrun AnsiEsc
 
 let g:quickrun_config = {'*': {'split': 'below 10sp'}}
 let g:quickrun_config._ = {'runner' : 'vimproc'}
@@ -167,14 +247,14 @@ let g:quickrun_config['rspec/bundle'] = {
   \ 'exec': 'bundle exec %c %o %s%a',
   \ 'outputter/buffer/filetype': 'rspec-result',
   \ 'filetype'                 : 'rspec-result'
-  \}
+\ }
 let g:quickrun_config['rspec/normal'] = {
   \ 'type': 'rspec/normal',
   \ 'command': 'rspec',
   \ 'exec': '%c %o --color --tty %s%a',
   \ 'outputter/buffer/filetype': 'rspec-result',
   \ 'filetype'                 : 'rspec-result'
-  \}
+\ }
 
 function! RSpecQuickrun()
   let b:quickrun_config = {'type' : 'rspec/bundle'}
@@ -184,26 +264,32 @@ endfunction
 autocmd BufReadPost *_spec.rb call RSpecQuickrun()
 
 "---------------------------
+" syntastic
+"---------------------------
+let g:syntastic_check_on_open   = 0
+let g:syntastic_check_on_save   = 1
+let g:syntastic_check_on_wq     = 0
+let g:syntastic_auto_loc_list   = 1 "エラーがあったら自動でロケーションリストを開く
+let g:syntastic_loc_list_height = 6 "エラー表示ウィンドウの高さ
+set statusline+=%#warningmsg# "エラーメッセージの書式
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+let g:syntastic_javascript_checkers = ['eslint'] "ESLintを使う
+let g:syntastic_mode_map = {
+  \ 'mode': 'active',
+  \ 'active_filetypes': ['javascript'],
+  \ 'passive_filetypes': []
+\ }
+
+"---------------------------
 " vim-fugitive
 "---------------------------
 nnoremap <silent> <Space>gb :Gblame<CR>
 nnoremap <silent> <Space>gd :Gdiff<CR>
 nnoremap <silent> <Space>gs :Gstatus<CR>
 
-"---------------------------
-" colorscheme
-"---------------------------
-syntax on
-colorscheme Tomorrow-Night-Bright
-
-filetype plugin indent on
-
 " 未インストールのプラグインがある場合、インストールするかどうかを尋ねてくれるようにする設定
 NeoBundleCheck
-
-"-------------------------
-" End Neobundle Settings.
-"-------------------------
 
 "-------------------------
 " Vim基本設定
@@ -215,9 +301,7 @@ set showmatch         " 括弧の対応をハイライト
 set number            " 行番号を表示
 set ruler             " カーソル位置を右下に表示
 set nowrap            " 画面幅で折り返さない
-
 set cursorline        " カーソル行をハイライト
-
 set wildmenu          " コマンド補完を強化
 set laststatus=2      " ステータスを2行表示に
 
@@ -226,12 +310,26 @@ set selection=exclusive
 set list
 set listchars=tab:>\
 
+" No beep sound
+set visualbell t_vb=
+" 前行へのBackspace許可など
+set backspace=indent,eol,start
+
+" コメント文字列の自動挿入を無効化
+augroup auto_comment_off
+  autocmd!
+  autocmd BufEnter * setlocal formatoptions-=r
+  autocmd BufEnter * setlocal formatoptions-=o
+augroup END
+
+" ファイルタイプの自動検出、ファイルタイプ用のプラグイン、インデントの設定を自動読込を有効にする
+filetype plugin indent on
+
 " ---------- Search ----------
 set wrapscan          " 最後まで検索したら先頭へ戻る
 set ignorecase        " 大文字小文字無視
 set smartcase         " 大文字ではじめたら大文字小文字無視しない
 set hlsearch          " 検索文字をハイライト
-
 
 " ---------- Tab ----------
 set expandtab         " Tabを半角スペースに置き換える
@@ -239,41 +337,14 @@ set tabstop=2         " Tabを押した時の半角スペースの数
 set shiftwidth=2
 set softtabstop=2
 
-" Backspaceを調整
-set backspace=indent,eol,start
-
 " ---------- KeyMap ----------
 nnoremap <Esc><Esc> :<C-u>noh<Return>
 nnoremap gb gT
 nnoremap <C-e> :NERDTree<Return>
 nnoremap <C-n> :tabnew<CR>
+
 " カーソル後の文字削除
 inoremap <silent> <C-d> <Del>
+inoremap <C-c> <Esc>
 
-augroup auto_comment_off
-  autocmd!
-  autocmd BufEnter * setlocal formatoptions-=r
-  autocmd BufEnter * setlocal formatoptions-=o
-augroup END
-
-" 括弧類の自動補完
-" inoremap { {}<LEFT>
-" inoremap [ []<LEFT>
-" inoremap ( ()<LEFT>
-" inoremap " ""<LEFT>
-" inoremap ' ''<LEFT>
-" vnoremap { "zdi^V{<C-R>z}<ESC>
-" vnoremap [ "zdi^V[<C-R>z]<ESC>
-" vnoremap ( "zdi^V(<C-R>z)<ESC>
-" vnoremap " "zdi^V"<C-R>z^V"<ESC>
-" vnoremap ' "zdi'<C-R>z'<ESC>
-
-" ---------- colorscheme ----------
-hi LineNr ctermfg=244
-
-hi Pmenu ctermbg=237
-hi PmenuSel ctermfg=33 ctermbg=220
-hi PMenuSbar ctermbg=4
-hi Visual cterm=reverse ctermfg=32 ctermbg=220
-hi Search cterm=reverse ctermfg=32 ctermbg=220
-hi IncSearch cterm=reverse ctermfg=160 ctermbg=220
+vnoremap <C-c> <Esc>
